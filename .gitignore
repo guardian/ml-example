@@ -1,0 +1,6 @@
+.idea
+*.zip
+node_modules/
+*.env
+.env
+.DS_Store
