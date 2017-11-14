@@ -4,8 +4,7 @@ version := "1.0"
 
 scalaVersion := "2.11.8"
 
-lazy val common = ProjectRef(file("../common"), "common")
-lazy val root = project in file(".") dependsOn common
+lazy val root = project in file(".") 
 
 libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.191",
