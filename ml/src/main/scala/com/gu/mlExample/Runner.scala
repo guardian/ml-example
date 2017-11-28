@@ -87,9 +87,8 @@ object Runner extends SparkUtils {
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
 
-    val schema = args(0)
-    val from = LocalDate.parse(args(1))
-    val to: LocalDate = args.lift(2).map(LocalDate.parse).getOrElse(from.plusDays(1)) // default to `from + 1` i.e. run only for `from`
+    val from = LocalDate.parse(args(0))
+    val to: LocalDate = args.lift(1).map(LocalDate.parse).getOrElse(from.plusDays(1)) // default to `from + 1` i.e. run only for `from`
 
     val conf = new SparkConf()
       .setAppName("Acquisitions")
@@ -152,22 +151,24 @@ object Runner extends SparkUtils {
         println("Model 2 was fit using parameters: " + model2.parent.extractParamMap)
 
         // Prepare test data.
-        val test = spark.createDataFrame(Seq(
-          (1.0, Vectors.dense(-1.0, 1.5, 1.3)),
-          (0.0, Vectors.dense(3.0, 2.0, -0.1)),
-          (1.0, Vectors.dense(0.0, 2.2, -1.5))
-        )).toDF("label", "features")
+        //val test = spark.createDataFrame(Seq(
+        //  (1.0, Vectors.dense(1.5, 1.3)),
+        //  (0.0, Vectors.dense(2.0, -0.1)),
+        //  (1.0, Vectors.dense(2.2, -1.5))
+        // )).toDF("label", "features")
 
         // Make predictions on test data using the Transformer.transform() method.
         // LogisticRegression.transform will only use the 'features' column.
         // Note that model2.transform() outputs a 'myProbability' column instead of the usual
         // 'probability' column since we renamed the lr.probabilityCol parameter previously.
-        model2.transform(test)
-          .select("features", "label", "myProbability", "prediction")
-          .collect()
-          .foreach { case Row(features: Vector, label: Double, prob: Vector, prediction: Double) =>
-            println(s"($features, $label) -> prob=$prob, prediction=$prediction")
-          }
+//        model2.transform(test)
+//          .select("features", "label", "myProbability", "prediction")
+//          .collect()
+//          .foreach { case Row(features: Vector, label: Double, prob: Vector, prediction: Double) =>
+//            println(s"($features, $label) -> prob=$prob, prediction=$prediction")
+//          }
+
+        model1.write.overwrite().save(s"s3://santiago-hackday-2017-prediction/models/model1")
 
       }
     }
