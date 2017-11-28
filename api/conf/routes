@@ -1,2 +1,2 @@
-GET    /    controllers.Application.helloWorld
-GET    /assets/*file    controllers.Assets.at(path="/public", file)
+GET    /    controllers.Application.index
+GET    /classify/:attentionTime/:averageDaysBetweenRecentVisits   controllers.Application.classify(attentionTime: Double, averageDaysBetweenRecentVisits: Double)
