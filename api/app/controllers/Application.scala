@@ -19,27 +19,27 @@ class Application extends Controller {
 
 	def classify(attentionTime: Double, averageDaysBetweenRecentVisits: Double) = Action { implicit request =>
     val result = getClassification(attentionTime, averageDaysBetweenRecentVisits)
-    Ok(Json.toJson(result._2))
+      Ok(Json.toJson(result.map(_._2).getOrElse(-1.0)))
 	}
 
 	def healthcheck() = Action {
 		Ok("")
 	}
 
-	private def getClassification(attentionTime: Double, averageDaysBetweenRecentVisits: Double): (Vector, Double) = {
+	private def getClassification(attentionTime: Double, averageDaysBetweenRecentVisits: Double): Option[(Vector, Double)] = {
 
 
 		val spark = SparkCommons.session
 
 
-    val test = spark.createDataFrame(Seq((1.0, Vectors.dense(attentionTime, averageDaysBetweenRecentVisits))))
+    val test = spark.createDataFrame(Seq((1.0, Vectors.dense(attentionTime, averageDaysBetweenRecentVisits)))).toDF("label", "features")
 
     SparkCommons
       .logModel
       .transform(test)
       .select("features", "label", "probability", "prediction")
       .collect()
-      .headOption match{
+      .headOption map {
         case Row(features: Vector, label: Double, prob: Vector, prediction: Double) =>
           (prob, prediction)
       }
@@ -60,7 +60,15 @@ object SparkCommons {
 		.getOrCreate()
 
 	val sqlContext = session.sqlContext
-	val logModel = LogisticRegressionModel.load("../../conf/model1.parquet")
+	val logModel = {
+    try {
+      LogisticRegressionModel.load("file:///Users/santiago_fernandez/Projects/ml-example/api/conf/model")
+    } catch {
+      case e =>
+        e.printStackTrace()
+        null
+    }
+  }
 
 }
 
